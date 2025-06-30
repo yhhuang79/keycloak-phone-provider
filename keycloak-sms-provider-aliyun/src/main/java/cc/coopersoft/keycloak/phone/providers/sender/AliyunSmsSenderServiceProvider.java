@@ -61,7 +61,7 @@ public class AliyunSmsSenderServiceProvider implements MessageSenderService {
         .overrideConfiguration(
             ClientOverrideConfiguration.create()
                 // Endpoint 请参考 https://api.aliyun.com/product/Dysmsapi
-                .setEndpointOverride("dysmsapi.ap-southeast-1.aliyuncs.com")
+                .setEndpointOverride("dysmsapi.aliyuncs.com")
             //.setConnectTimeout(Duration.ofSeconds(30))
         )
         .build();
@@ -78,8 +78,10 @@ public class AliyunSmsSenderServiceProvider implements MessageSenderService {
     // Parameter settings for API request
     SendSmsRequest sendSmsRequest = SendSmsRequest.builder()
         .phoneNumbers(phoneNumber)
-        .signName(realm.getDisplayName().toLowerCase())
-        .templateCode(templateId)
+        // .signName(realm.getDisplayName().toLowerCase())
+        .signName("乔山健康科技")
+        // .templateCode(templateId)
+        .templateCode("SMS_321310490")
         .templateParam(String.format("{\"code\":\"%s\",\"expires\":\"%s\"}",code,expires / 60))
         // Request-level configuration rewrite, can set Http request parameters, etc.
         // .requestConfiguration(RequestConfiguration.create().setHttpHeaders(new HttpHeaders()))
