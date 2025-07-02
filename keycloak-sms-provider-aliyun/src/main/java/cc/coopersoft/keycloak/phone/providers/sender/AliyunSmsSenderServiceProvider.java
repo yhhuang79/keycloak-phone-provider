@@ -15,6 +15,7 @@ import org.keycloak.Config;
 import org.keycloak.models.RealmModel;
 
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
 public class AliyunSmsSenderServiceProvider implements MessageSenderService {
@@ -52,6 +53,17 @@ public class AliyunSmsSenderServiceProvider implements MessageSenderService {
         .securityToken(config.get("token")) // use STS token
         .build());
 
+    Properties endpointUrl = new Properties();
+    endpointUrl.setProperty("cn-hangzhou", "dysmsapi.aliyuncs.com");
+    endpointUrl.setProperty("cn-qingdao", "dysmsapi.aliyuncs.com");
+    endpointUrl.setProperty("cn-zhangjiakou", "dysmsapi.aliyuncs.com");
+    endpointUrl.setProperty("cn-huhehaote", "dysmsapi.aliyuncs.com");
+    endpointUrl.setProperty("cn-shenzhen", "dysmsapi.aliyuncs.com");
+    endpointUrl.setProperty("cn-hongkong", "dysmsapi.aliyuncs.com");
+    endpointUrl.setProperty("ap-southeast-5", "dysmsapi.ap-southeast-5.aliyuncs.com");
+    endpointUrl.setProperty("cn-chengdu", "dysmsapi.aliyuncs.com");
+    endpointUrl.setProperty("ap-southeast-1", "dysmsapi.ap-southeast-1.aliyuncs.com");
+
     // Configure the Client
     client = AsyncClient.builder()
         //.httpClient(httpClient) // Use the configured HttpClient, otherwise use the default HttpClient (Apache HttpClient)
@@ -61,7 +73,7 @@ public class AliyunSmsSenderServiceProvider implements MessageSenderService {
         .overrideConfiguration(
             ClientOverrideConfiguration.create()
                 // Endpoint 请参考 https://api.aliyun.com/product/Dysmsapi
-                .setEndpointOverride("dysmsapi.aliyuncs.com")
+                .setEndpointOverride(endpointUrl.getProperty(config.get("region")))
             //.setConnectTimeout(Duration.ofSeconds(30))
         )
         .build();
@@ -80,8 +92,8 @@ public class AliyunSmsSenderServiceProvider implements MessageSenderService {
         .phoneNumbers(phoneNumber)
         // .signName(realm.getDisplayName().toLowerCase())
         .signName("乔山健康科技")
-        // .templateCode(templateId)
-        .templateCode("SMS_321310490")
+        .templateCode(templateId)
+        //.templateCode("SMS_321310490")
         .templateParam(String.format("{\"code\":\"%s\",\"expires\":\"%s\"}",code,expires / 60))
         // Request-level configuration rewrite, can set Http request parameters, etc.
         // .requestConfiguration(RequestConfiguration.create().setHttpHeaders(new HttpHeaders()))

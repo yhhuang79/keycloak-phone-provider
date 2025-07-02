@@ -38,4 +38,13 @@ public class SmsResource {
         return new TokenCodeResource(session, TokenCodeType.OTP);
     }
 
+    @Path("registration")
+    public RegistrationResource getRegistrationResource() {
+        return new RegistrationResource(session);
+    }
+
+    @Path("reset")
+    public ResetResource getResetResource() {
+        return new ResetResource(session);
+    }
 }
