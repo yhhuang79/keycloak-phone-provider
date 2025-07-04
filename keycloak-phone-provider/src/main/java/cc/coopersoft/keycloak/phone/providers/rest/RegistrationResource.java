@@ -52,7 +52,7 @@ public class RegistrationResource extends TokenCodeResource {
       if (!regitrationData.containsKey("code"))
         throw new BadRequestException("Must inform a token code");
       
-      String username = Utils.standardizePhoneNumber(session, regitrationData.get("phoneNumber").toString());
+      String username = regitrationData.get("phoneNumber").toString();
       TokenCodeRepresentation tokenCode = getTokenCodeService().ongoingProcess(username, TokenCodeType.REGISTRATION);
 
       if (!tokenCode.getCode().equals(regitrationData.get("code").toString()))
