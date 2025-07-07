@@ -6,8 +6,6 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.services.managers.AppAuthManager;
-import org.keycloak.services.managers.AuthenticationManager.AuthResult;
 import org.keycloak.util.JsonSerialization;
 
 import cc.coopersoft.keycloak.phone.Utils;
@@ -25,11 +23,8 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
 public class ResetResource extends TokenCodeResource {
 
-  private final AuthResult auth;
-
   ResetResource(KeycloakSession session) {
     super(session, TokenCodeType.RESET);
-    this.auth = new AppAuthManager.BearerTokenAuthenticator(session).authenticate();
   }
 
   private PhoneVerificationCodeProvider getTokenCodeService() {
@@ -47,18 +42,14 @@ public class ResetResource extends TokenCodeResource {
     Map<String, Object> resetData;
     try {
       resetData = JsonSerialization.readValue(requestBody, Map.class);
-      if (auth == null)
-        throw new NotAuthorizedException("Bearer");
       if (!resetData.containsKey("phoneNumber"))
         throw new BadRequestException("Must inform a phone number");
       if (!resetData.containsKey("code"))
         throw new BadRequestException("Must inform a token code");
       if (!resetData.containsKey("password"))
         throw new BadRequestException("Must inform a new password");
-      if (!resetData.containsKey("email"))
-        throw new BadRequestException("Must inform a email");
       
-      String username = Utils.standardizePhoneNumber(session, resetData.get("phoneNumber").toString());
+      String username = resetData.get("phoneNumber").toString();
       TokenCodeRepresentation tokenCode = getTokenCodeService().ongoingProcess(username, TokenCodeType.RESET);
 
       if (!tokenCode.getCode().equals(resetData.get("code").toString()))
@@ -67,12 +58,15 @@ public class ResetResource extends TokenCodeResource {
       UserModel user = session.users().getUserByUsername(realm, username);
       if (user == null)
         throw new NotFoundException("User not found");
-      
-      String email = resetData.get("email").toString();
-      if (!email.matches("^.+@.+\\..+$"))
-        throw new BadRequestException("Invalid email");
-      user.setEmail(email);
-      user.setEmailVerified(true);
+
+      if (resetData.containsKey("email")) {
+        String email = resetData.get("email").toString();
+        if (!email.matches("^.+@.+\\..+$"))
+          throw new BadRequestException("Invalid email");
+        user.setEmail(email);
+        user.setEmailVerified(true);
+      }
+
       String newPassword = resetData.get("password").toString();
       CredentialRepresentation passwordCredential = new CredentialRepresentation();
       passwordCredential.setType(CredentialRepresentation.PASSWORD);
@@ -82,7 +76,7 @@ public class ResetResource extends TokenCodeResource {
       UserCredentialModel credential = UserCredentialModel.password(newPassword, false);
       user.credentialManager().updateCredential(credential);
 
-      String response = "{\"message\":\"Password updated\"}";
+      String response = "{\"message\":\"User updated\"}";
       return Response.ok(response, APPLICATION_JSON).build();
       
     } catch (IOException e) {
